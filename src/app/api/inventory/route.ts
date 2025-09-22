@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const inventory = await client
       .db("pure-aura-harvest")
-      .collection("inventory")
+      .collection("products")
       .find()
       .toArray();
 
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const result = await client
       .db("pure-aura-harvest")
-      .collection("inventory")
+      .collection("products")
       .insertOne(body);
 
     return NextResponse.json(
@@ -43,7 +43,7 @@ export async function PUT(req: NextRequest) {
 
     const inventory = await client
       .db("pure-aura-harvest")
-      .collection("inventory")
+      .collection("products")
       .updateOne({ _id: body._id }, { $set: body });
 
     if (inventory.matchedCount === 0) {

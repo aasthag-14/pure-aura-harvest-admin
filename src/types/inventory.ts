@@ -1,28 +1,15 @@
-export interface InventoryItem {
-  _id: string;
-  name: string;
-  brand: string;
-  category: string;
-  stock: number;
-  price: number;
-  description?: string;
-  sku?: string;
-  minStockLevel?: number;
-  discount: number;
-  benefits?: string[];
-  details?: string[];
-}
-
 export interface InventoryFormData {
   name: string;
   brand: string;
   category: string;
-  price: number | string;
-  stock: number | string;
+  price: number;
+  stock: number;
+  discount: number;
   description?: string;
   sku?: string;
   minStockLevel?: number;
-  discount: number;
   benefits?: string[];
   details?: string[];
+  images?: string[];
+  _id?: string;
 }

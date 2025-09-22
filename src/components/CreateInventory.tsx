@@ -1,87 +1,162 @@
 "use client";
 import { BRANDS, existingCategories } from "@/constants";
 import { InventoryFormData } from "@/types/inventory";
+import axios from "axios";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 interface CreateInventoryFormProps {
-  onSubmit: (data: InventoryFormData) => void;
   onClose: () => void;
-  isLoading?: boolean;
+  formData?: InventoryFormData;
+  isEdit?: boolean;
 }
 
+interface InventoryForm {
+  name: string;
+  brand: string;
+  category: string;
+  price: number;
+  stock: number;
+  discount: number;
+  minStockLevel: number;
+  description: string;
+  details: string;
+  benefits: string;
+  images: string;
+}
+
+const defaultValues: InventoryForm = {
+  name: "",
+  brand: "",
+  category: "",
+  price: 0,
+  stock: 0,
+  discount: 0,
+  minStockLevel: 10,
+  description: "",
+  details: "",
+  benefits: "",
+  images: "",
+};
+
+const getInitialValues = (formData?: InventoryFormData): InventoryForm => {
+  return {
+    ...defaultValues,
+    ...formData,
+    details: formData?.details?.join("\n") || "",
+    benefits: formData?.benefits?.join("\n") || "",
+    images: formData?.images?.join("\n") || "",
+  };
+};
+
 export default function CreateInventory({
-  onSubmit,
   onClose,
-  isLoading = false,
+  formData,
+  isEdit,
 }: CreateInventoryFormProps) {
-  const [formData, setFormData] = useState<InventoryFormData>({
-    name: "",
-    brand: "",
-    category: "",
-    price: 0,
-    stock: 0,
-    discount: 0,
-    description: "",
-    // sku: "",
-    minStockLevel: 10,
-    details: [],
-    benefits: [],
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<InventoryForm>({
+    defaultValues: getInitialValues(formData),
   });
 
-  const [errors, setErrors] = useState<Partial<InventoryFormData>>({});
-  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const price = watch("price");
+  const stock = watch("stock");
+  const discount = watch("discount");
 
-  const validateForm = (): boolean => {
-    const newErrors: Partial<InventoryFormData> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Product name is required";
-    }
-
-    if (!formData.brand.trim()) {
-      newErrors.brand = "Brand is required";
-    }
-
-    if (!formData.category.trim()) {
-      newErrors.category = "Category is required";
-    }
-
-    if (+formData.price <= 0) {
-      newErrors.price = "Price must be greater than 0";
-    }
-
-    if (+formData.stock < 0) {
-      newErrors.stock = "Stock cannot be negative";
-    }
-
-    if (formData.minStockLevel && formData.minStockLevel < 0) {
-      // newErrors.minStockLevel = "Minimum stock level cannot be negative";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const calculateTotalValue = (): string => {
+    const total = (price || 0) * (stock || 0);
+    return total.toLocaleString();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData);
-    }
+  const calculateSellingPrice = (): number => {
+    const discountAmount = ((discount || 0) / 100) * (price || 0);
+    return Math.round((price || 0) - discountAmount);
   };
 
-  const handleInputChange = (
-    field: keyof InventoryFormData,
-    value: string | number | string[]
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+  const validatePrice = (value: number) => {
+    if (!value || value <= 0) {
+      return "Price must be greater than 0";
     }
+    return true;
   };
 
-  const calculateTotalValue = () => {
-    return (+formData.price * +formData.stock).toLocaleString();
+  const validateStock = (value: number) => {
+    if (value === undefined || value === null || value < 0) {
+      return "Stock cannot be negative";
+    }
+    return true;
+  };
+
+  const validateDiscount = (value: number) => {
+    if (value && (value < 0 || value > 100)) {
+      return "Discount must be between 0 and 100";
+    }
+    return true;
+  };
+
+  const validateMinStock = (value: number) => {
+    if (value && value < 0) {
+      return "Minimum stock cannot be negative";
+    }
+    return true;
+  };
+
+  const validateImageUrls = (value: string) => {
+    if (!value) return true;
+    const urls = value.split("\n").filter(Boolean);
+    for (const url of urls) {
+      const urlPattern =
+        /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+      if (!urlPattern.test(url) && !url.startsWith("/")) {
+        return "Please enter valid URLs or file paths";
+      }
+    }
+    return true;
+  };
+
+  const onSubmit = async (data: InventoryForm) => {
+    try {
+      setIsLoading(true);
+
+      // Transform textarea values to arrays
+      const processedData: InventoryFormData = {
+        ...data,
+        details:
+          typeof data.details === "string"
+            ? (data.details as string).split("\n").filter(Boolean)
+            : data.details || [],
+        benefits:
+          typeof data.benefits === "string"
+            ? (data.benefits as string).split("\n").filter(Boolean)
+            : data.benefits || [],
+        images:
+          typeof data.images === "string"
+            ? (data.images as string).split("\n").filter(Boolean)
+            : data.images || [],
+      };
+
+      if (isEdit) {
+        await axios.put(`/api/inventory/${formData?._id}`, processedData);
+        onClose();
+        return;
+      }
+
+      await axios.post("/api/inventory", processedData);
+
+      onClose();
+    } catch (error) {
+      console.error("Error creating inventory:", error);
+      // You might want to show a toast here like in your example
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -89,50 +164,64 @@ export default function CreateInventory({
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Add New Inventory Item
+          {isEdit ? "Edit Inventory Item" : "Add New Inventory Item"}
         </h1>
         <p className="text-gray-600">
-          Fill in the details below to add a new product to your inventory
+          Fill in the details below to{" "}
+          {isEdit ? "edit an existing product" : "add a new product"}
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Basic Information Section */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-            Basic Information
+            <span className="w-2 h-2 bg-blue-500 rounded-full"></span> Basic
+            Information
           </h2>
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Product Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Product Name *
               </label>
               <input
+                id="name"
                 type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                {...register("name", {
+                  required: "Product name is required",
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
                   errors.name ? "border-red-300 bg-red-50" : "border-gray-300"
                 }`}
                 placeholder="Enter product name"
+                aria-invalid={errors.name ? "true" : "false"}
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.name.message}
+                </p>
               )}
             </div>
 
             {/* Brand */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="brand"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Brand *
               </label>
               <select
-                value={formData.brand}
-                onChange={(e) => handleInputChange("brand", e.target.value)}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors ${
+                id="brand"
+                {...register("brand", {
+                  required: "Brand is required",
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white transition-colors ${
                   errors.brand ? "border-red-300 bg-red-50" : "border-gray-300"
                 }`}
               >
@@ -144,7 +233,9 @@ export default function CreateInventory({
                 ))}
               </select>
               {errors.brand && (
-                <p className="mt-1 text-sm text-red-600">{errors.brand}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.brand.message}
+                </p>
               )}
             </div>
 
@@ -181,11 +272,10 @@ export default function CreateInventory({
               {isCustomCategory ? (
                 <input
                   type="text"
-                  value={formData.category}
-                  onChange={(e) =>
-                    handleInputChange("category", e.target.value)
-                  }
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                  {...register("category", {
+                    required: "Category is required",
+                  })}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
                     errors.category
                       ? "border-red-300 bg-red-50"
                       : "border-gray-300"
@@ -194,11 +284,10 @@ export default function CreateInventory({
                 />
               ) : (
                 <select
-                  value={formData.category}
-                  onChange={(e) =>
-                    handleInputChange("category", e.target.value)
-                  }
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors ${
+                  {...register("category", {
+                    required: "Category is required",
+                  })}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white transition-colors ${
                     errors.category
                       ? "border-red-300 bg-red-50"
                       : "border-gray-300"
@@ -213,54 +302,87 @@ export default function CreateInventory({
                 </select>
               )}
               {errors.category && (
-                <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.category.message}
+                </p>
               )}
             </div>
 
             {/* Description */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Description
               </label>
               <textarea
+                id="description"
                 rows={3}
-                value={formData.description}
-                onChange={(e) =>
-                  handleInputChange("description", e.target.value)
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                {...register("description")}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors resize-none"
                 placeholder="Enter product description (optional)"
               />
             </div>
-            {/* Product Details */}
+
+            {/* Details */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="details"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Product Details (one per line)
               </label>
               <textarea
+                id="details"
                 rows={3}
-                value={formData.details?.join("\n")}
-                onChange={(e) =>
-                  handleInputChange("details", e.target.value?.split("\n"))
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                {...register("details")}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors resize-none"
                 placeholder="e.g., Made with organic ingredients&#10;No added preservatives"
               />
             </div>
+
             {/* Benefits */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="benefits"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Benefits (one per line)
               </label>
               <textarea
+                id="benefits"
                 rows={3}
-                value={formData.benefits?.join("\n")}
-                onChange={(e) =>
-                  handleInputChange("benefits", e.target.value.split("\n"))
-                }
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                {...register("benefits")}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors resize-none"
                 placeholder="e.g., Boosts immunity&#10;Improves digestion"
               />
+            </div>
+
+            {/* Images */}
+            <div className="md:col-span-2">
+              <label
+                htmlFor="images"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Product Images (URLs, one per line)
+              </label>
+              <textarea
+                id="images"
+                rows={3}
+                {...register("images", {
+                  validate: validateImageUrls,
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors resize-none ${
+                  errors.images ? "border-red-300 bg-red-50" : "border-gray-300"
+                }`}
+                placeholder="e.g., /images/products/moringa.jpeg"
+              />
+              {errors.images && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.images.message}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -268,111 +390,135 @@ export default function CreateInventory({
         {/* Pricing & Stock Section */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-            Pricing & Stock
+            <span className="w-2 h-2 bg-green-500 rounded-full"></span> Pricing
+            & Stock
           </h2>
 
           <div className="grid md:grid-cols-3 gap-6">
             {/* Price */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="price"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Unit Price (₹) *
               </label>
               <input
+                id="price"
                 type="number"
-                min="0"
                 step="0.01"
-                value={formData.price}
-                onChange={(e) =>
-                  handleInputChange("price", parseFloat(e.target.value) || 0)
-                }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                {...register("price", {
+                  required: "Price is required",
+                  valueAsNumber: true,
+                  validate: validatePrice,
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
                   errors.price ? "border-red-300 bg-red-50" : "border-gray-300"
                 }`}
                 placeholder="0.00"
+                aria-invalid={errors.price ? "true" : "false"}
               />
               {errors.price && (
-                <p className="mt-1 text-sm text-red-600">{errors.price}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.price.message}
+                </p>
               )}
             </div>
 
             {/* Discount */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Discount
+              <label
+                htmlFor="discount"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Discount (%)
               </label>
               <input
+                id="discount"
                 type="number"
                 min="0"
-                value={formData.discount}
-                onChange={(e) =>
-                  handleInputChange("discount", parseInt(e.target.value) || 0)
-                }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                max="100"
+                {...register("discount", {
+                  valueAsNumber: true,
+                  validate: validateDiscount,
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
                   errors.discount
                     ? "border-red-300 bg-red-50"
                     : "border-gray-300"
                 }`}
-                placeholder="10"
+                placeholder="0"
+                aria-invalid={errors.discount ? "true" : "false"}
               />
               {errors.discount && (
-                <p className="mt-1 text-sm text-red-600">{errors.discount}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.discount.message}
+                </p>
               )}
-              {formData.discount > 0 && (
+              {discount > 0 && (
                 <p className="mt-1 text-sm text-gray-500">
-                  {`Selling price = ${+Math.round(
-                    +Math.round(+formData.price * (1 - formData.discount / 100))
-                  )}`}
+                  Selling price: ₹{calculateSellingPrice()}
                 </p>
               )}
             </div>
 
             {/* Stock */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="stock"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Initial Stock Quantity *
               </label>
               <input
+                id="stock"
                 type="number"
                 min="0"
-                value={formData.stock}
-                onChange={(e) =>
-                  handleInputChange("stock", parseInt(e.target.value) || 0)
-                }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                {...register("stock", {
+                  required: "Stock quantity is required",
+                  valueAsNumber: true,
+                  validate: validateStock,
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
                   errors.stock ? "border-red-300 bg-red-50" : "border-gray-300"
                 }`}
                 placeholder="0"
+                aria-invalid={errors.stock ? "true" : "false"}
               />
               {errors.stock && (
-                <p className="mt-1 text-sm text-red-600">{errors.stock}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.stock.message}
+                </p>
               )}
             </div>
+
             {/* Minimum Stock Level */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="minStockLevel"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Minimum Stock Alert
               </label>
               <input
+                id="minStockLevel"
                 type="number"
                 min="0"
-                value={formData.minStockLevel}
-                onChange={(e) =>
-                  handleInputChange(
-                    "minStockLevel",
-                    parseInt(e.target.value) || 0
-                  )
-                }
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                {...register("minStockLevel", {
+                  valueAsNumber: true,
+                  validate: validateMinStock,
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
                   errors.minStockLevel
                     ? "border-red-300 bg-red-50"
                     : "border-gray-300"
                 }`}
                 placeholder="10"
+                aria-invalid={errors.minStockLevel ? "true" : "false"}
               />
               {errors.minStockLevel && (
                 <p className="mt-1 text-sm text-red-600">
-                  {errors.minStockLevel}
+                  {errors.minStockLevel.message}
                 </p>
               )}
               <p className="mt-1 text-sm text-gray-500">
@@ -381,8 +527,8 @@ export default function CreateInventory({
             </div>
           </div>
 
-          {/* Total Value Display */}
-          {+formData.price > 0 && +formData.stock > 0 && (
+          {/* Total Value */}
+          {price > 0 && stock > 0 && (
             <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-green-800">
@@ -401,44 +547,29 @@ export default function CreateInventory({
           <button
             type="submit"
             disabled={isLoading}
-            className={`flex-1 md:flex-none md:px-8 py-3 bg-blue-600 text-white rounded-lg font-medium transition-colors cursor-pointer ${
+            className={`flex-1 md:flex-none md:px-8 py-3 bg-blue-600 text-white rounded-lg font-medium transition-colors ${
               isLoading
                 ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                : "hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
             }`}
           >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg
-                  className="animate-spin w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Creating...
-              </span>
-            ) : (
-              "Create Inventory Item"
-            )}
+            {isLoading
+              ? isEdit
+                ? "Updating..."
+                : "Creating..."
+              : isEdit
+              ? "Update Inventory Item"
+              : "Create Inventory Item"}
           </button>
-
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+            disabled={isLoading}
+            className={`px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium transition-colors ${
+              isLoading
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-50 cursor-pointer"
+            }`}
           >
             Cancel
           </button>
