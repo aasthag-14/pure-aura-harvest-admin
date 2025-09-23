@@ -1,8 +1,8 @@
 "use client";
 
-import { InventoryItem } from "@/types/inventory";
 import { Order } from "@/types/order";
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import { Product } from "@/types/product";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 type User = {
   id: string;
@@ -13,11 +13,11 @@ type User = {
 type AppDataContextType = {
   orders: Order[];
   users: User[];
-  inventory: InventoryItem[];
+  inventory: Product[];
   refetch: boolean;
   setOrders: (orders: Order[]) => void;
   setUsers: (users: User[]) => void;
-  setInventory: (inventory: InventoryItem[]) => void;
+  setInventory: (inventory: Product[]) => void;
   setRefetch: (refetch: boolean) => void;
 };
 
@@ -26,7 +26,7 @@ const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 export const AppDataProvider = ({ children }: { children: ReactNode }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [inventory, setInventory] = useState<Product[]>([]);
   const [refetch, setRefetch] = useState(false);
 
   return (

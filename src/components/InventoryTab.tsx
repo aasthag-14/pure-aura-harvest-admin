@@ -1,20 +1,16 @@
-import { InventoryFormData, InventoryItem } from "@/types/inventory";
-import { useState, useMemo } from "react";
-import Modal from "./Modal";
-import CreateInventory from "./CreateInventory";
 import { useAppData } from "@/context/AppDataContext";
+import { Product } from "@/types/product";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import CreateInventory from "./CreateInventory";
+import Modal from "./Modal";
 
-export default function InventoryTab({
-  inventory,
-}: {
-  inventory: InventoryItem[];
-}) {
+export default function InventoryTab({ inventory }: { inventory: Product[] }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [sortBy, setSortBy] = useState<keyof InventoryItem>("name");
+  const [sortBy, setSortBy] = useState<keyof Product>("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const { setRefetch } = useAppData();
 
   // Get unique categories
@@ -27,9 +23,9 @@ export default function InventoryTab({
   const filteredInventory = useMemo(() => {
     const filtered = inventory.filter((item) => {
       const matchesSearch =
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchTerm.toLowerCase());
+        item?.name?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+        item?.brand?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+        item?.category?.toLowerCase().includes(searchTerm?.toLowerCase());
       const matchesCategory =
         selectedCategory === "All" || item.category === selectedCategory;
       return matchesSearch && matchesCategory;
@@ -65,7 +61,7 @@ export default function InventoryTab({
     return { status: "In Stock", color: "bg-green-100 text-green-800" };
   };
 
-  const toggleSort = (field: keyof InventoryItem) => {
+  const toggleSort = (field: keyof Product) => {
     if (sortBy === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -75,34 +71,9 @@ export default function InventoryTab({
   };
 
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
-
-  const handleCreateInventory = async (data: InventoryFormData) => {
-    try {
-      setIsLoading(true);
-      const res = await fetch("/api/inventory", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed to create inventory: ${res.statusText}`);
-      }
-
-      await res.json();
-      setIsLoading(false);
-      setRefetch(true);
-
-      closeModal();
-
-      // Optional: show toast or reset form
-    } catch (error) {
-      console.error("Error creating inventory:", error);
-      setIsLoading(false);
-    }
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setRefetch(true);
   };
 
   return (
@@ -117,7 +88,13 @@ export default function InventoryTab({
             Manage your product inventory with {inventory.length} total items
           </p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setRefetch(true)}
+            className="bg-blue-700 text-gray-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            Refresh
+          </button>
           <button
             onClick={openModal}
             className="bg-blue-700 text-gray-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 cursor-pointer"
@@ -268,14 +245,17 @@ export default function InventoryTab({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredInventory.map((item) => {
           const stockStatus = getStockStatus(item.stock);
+          const compositeKey = String(
+            item._id || `${item.name}-${item.brand}-${item.category}`
+          );
 
           return (
             <div
-              key={item._id}
+              key={compositeKey}
               className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200 group"
             >
               {/* Header */}
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex justify-between items-start gap-2 mb-4">
                 <div className="flex-1">
                   <h3 className="font-bold text-lg text-gray-900 group-hover:text-gray-700 transition-colors leading-tight">
                     {item.name}
@@ -289,6 +269,12 @@ export default function InventoryTab({
                 >
                   {stockStatus.status}
                 </span>
+                <Link
+                  href={`/inventory/${item._id}`}
+                  className="text-blue-600 font-medium hover:underline"
+                >
+                  View
+                </Link>
               </div>
 
               {/* Category */}
@@ -324,7 +310,9 @@ export default function InventoryTab({
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Discount</span>
                   <span className="font-bold text-lg text-gray-600">
-                    {item.discount > 0 ? `${item.discount}%` : "N/A"}
+                    {item.discount && item.discount > 0
+                      ? `${item.discount}%`
+                      : "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -332,11 +320,11 @@ export default function InventoryTab({
                   <div>
                     <span className="text-xl text-[#393831] font-bold">
                       ₹
-                      {item.discount > 0
+                      {item.discount && item.discount > 0
                         ? +Math.round(+item.price * (1 - item.discount / 100))
                         : item.price}
                     </span>
-                    {item.discount > 0 && (
+                    {item.discount && item.discount > 0 && (
                       <span className="text-sm text-[#393831]/60 line-through">
                         ₹{item.price}
                       </span>
@@ -395,11 +383,7 @@ export default function InventoryTab({
       )}
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <CreateInventory
-          onClose={closeModal}
-          onSubmit={handleCreateInventory}
-          isLoading={isLoading}
-        />
+        <CreateInventory onClose={closeModal} />
       </Modal>
     </div>
   );
