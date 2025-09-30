@@ -1,10 +1,11 @@
 "use client";
 
 import { TABS } from "@/constants";
-import React, { useEffect } from "react";
-import OrdersTable from "./OrdersTable";
 import { useAppData } from "@/context/AppDataContext";
-import InventoryTab from "./InventoryTab";
+import { useEffect } from "react";
+import InventoryTab from "./tabs/InventoryTab";
+import OrdersTable from "./tabs/OrdersTable";
+import CouponsTab from "./tabs/CouponsTab";
 
 type TabsProps = {
   activeTab: string;
@@ -13,7 +14,7 @@ type TabsProps = {
 
 const Tabs = ({ activeTab, setActiveTab }: TabsProps) => {
   return (
-    <div className="flex gap-1 mb-6 p-1 bg-gray-100 rounded-lg w-fit">
+    <div className="flex gap-1 mt-6 p-1 bg-gray-100 rounded-lg w-fit mx-auto">
       {TABS.map((tab) => (
         <button
           key={tab}
@@ -78,16 +79,37 @@ export const TabContent = ({ activeTab }: { activeTab: string }) => {
       return <OrdersTable orders={orders} />;
     case "Users":
       return (
-        <ul className="space-y-2">
-          {users.map((u) => (
-            <li key={u.id} className="p-2 border rounded">
-              {u.name} ({u.email})
-            </li>
-          ))}
-        </ul>
+        <div className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-300 w-full mt-6">
+          <h2 className="p-4 font-bold">Users</h2>
+
+          <ul className="p-4">
+            {users.map((u) => (
+              <li key={u.id} className="p-2 border border-gray-200 rounded">
+                {u.name}: {u.email}
+              </li>
+            ))}
+          </ul>
+        </div>
       );
     case "Inventory":
       return <InventoryTab inventory={inventory} />;
+    case "Settings":
+      return (
+        <div className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-300 w-full">
+          <h2 className="p-4 font-bold">Settings</h2>
+          <div className="p-4">
+            Theme:{" "}
+            <span className="border border-gray-200 rounded px-2 py-1 ml-2">
+              Light
+            </span>{" "}
+            <span className="border border-gray-200 rounded px-2 py-1 ml-2">
+              Dark
+            </span>
+          </div>
+        </div>
+      );
+    case "Coupons":
+      return <CouponsTab />;
     default:
       return null;
   }
