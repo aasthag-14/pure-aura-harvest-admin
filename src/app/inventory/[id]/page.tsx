@@ -34,8 +34,18 @@ const ViewProduct: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    axios.delete(`/api/inventory/${id}`);
-    router.push("/");
+    const ok = window.confirm(
+      `Delete "${product?.name}"? This action cannot be undone.`
+    );
+    if (!ok) return;
+
+    try {
+      await axios.delete(`/api/inventory/${id}`);
+      router.push("/");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete. Please try again.");
+    }
   };
 
   const handleToggleActive = async () => {

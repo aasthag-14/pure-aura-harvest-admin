@@ -1,5 +1,5 @@
 "use client";
-import { BRANDS, existingCategories } from "@/constants";
+import { BRANDS, existingCategories, YES_NO } from "@/constants";
 import { InventoryFormData } from "@/types/inventory";
 import axios from "axios";
 import { useState } from "react";
@@ -10,6 +10,8 @@ interface CreateInventoryFormProps {
   formData?: InventoryFormData;
   isEdit?: boolean;
 }
+
+type YES_NO = "Yes" | "No";
 
 interface InventoryForm {
   name: string;
@@ -23,6 +25,11 @@ interface InventoryForm {
   details: string;
   benefits: string;
   images: string;
+  sku: string;
+  isBestSeller?: YES_NO;
+  isNewArrival?: YES_NO;
+  inStock?: YES_NO;
+  shortDescription?: string;
 }
 
 const defaultValues: InventoryForm = {
@@ -37,6 +44,11 @@ const defaultValues: InventoryForm = {
   details: "",
   benefits: "",
   images: "",
+  sku: "",
+  isBestSeller: "No",
+  isNewArrival: "No",
+  inStock: "Yes",
+  shortDescription: "",
 };
 
 const getInitialValues = (formData?: InventoryFormData): InventoryForm => {
@@ -208,6 +220,60 @@ export default function CreateInventory({
               )}
             </div>
 
+            <div>
+              <label
+                htmlFor="sku"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                SKU *
+              </label>
+              <input
+                id="sku"
+                type="text"
+                {...register("sku", {
+                  required: "SKU is required",
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                  errors.sku ? "border-red-300 bg-red-50" : "border-gray-300"
+                }`}
+                placeholder="Enter product sku"
+                aria-invalid={errors.sku ? "true" : "false"}
+              />
+              {errors.sku && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.sku.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="shortDescription"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Short Description *
+              </label>
+              <input
+                id="shortDescription"
+                type="text"
+                {...register("shortDescription", {
+                  required: "Short Description is required",
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                  errors.shortDescription
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-300"
+                }`}
+                placeholder="Enter product short description"
+                aria-invalid={errors.shortDescription ? "true" : "false"}
+              />
+              {errors.shortDescription && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.shortDescription.message}
+                </p>
+              )}
+            </div>
+
             {/* Brand */}
             <div>
               <label
@@ -235,6 +301,97 @@ export default function CreateInventory({
               {errors.brand && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.brand.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="isBestSeller"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Is Bestseller ?
+              </label>
+              <select
+                id="isBestSeller"
+                {...register("isBestSeller")}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white transition-colors ${
+                  errors.isBestSeller
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-300"
+                }`}
+              >
+                <option value="">Select</option>
+                {YES_NO.map((isBestSeller) => (
+                  <option key={isBestSeller} value={isBestSeller}>
+                    {isBestSeller}
+                  </option>
+                ))}
+              </select>
+              {errors.isBestSeller && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.isBestSeller.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="isNewArrival"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Is New Arrival ?
+              </label>
+              <select
+                id="isNewArrival"
+                {...register("isNewArrival")}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white transition-colors ${
+                  errors.isNewArrival
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-300"
+                }`}
+              >
+                <option value="">Select</option>
+                {YES_NO.map((isNewArrival) => (
+                  <option key={isNewArrival} value={isNewArrival}>
+                    {isNewArrival}
+                  </option>
+                ))}
+              </select>
+              {errors.isNewArrival && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.isNewArrival.message}
+                </p>
+              )}
+            </div>
+
+            {/* in stock */}
+            <div>
+              <label
+                htmlFor="inStock"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Is In Stock ?
+              </label>
+              <select
+                id="inStock"
+                {...register("inStock")}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white transition-colors ${
+                  errors.inStock
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-300"
+                }`}
+              >
+                <option value="">Select</option>
+                {YES_NO.map((inStock) => (
+                  <option key={inStock} value={inStock}>
+                    {inStock}
+                  </option>
+                ))}
+              </select>
+              {errors.inStock && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.inStock.message}
                 </p>
               )}
             </div>
