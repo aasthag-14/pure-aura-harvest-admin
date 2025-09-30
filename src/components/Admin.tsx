@@ -8,7 +8,7 @@ const Admin = () => {
 
   return (
     <AppDataProvider>
-      <div className="p-8">
+      <div className="md:p-8">
         <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
         <TabContent activeTab={activeTab} />
       </div>

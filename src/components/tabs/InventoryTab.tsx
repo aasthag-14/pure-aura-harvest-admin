@@ -2,8 +2,8 @@ import { useAppData } from "@/context/AppDataContext";
 import { Product } from "@/types/product";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import CreateInventory from "./CreateInventory";
-import Modal from "./Modal";
+import Modal from "../Modal";
+import InventoryForm from "../InventoryForm";
 
 export default function InventoryTab({ inventory }: { inventory: Product[] }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -79,7 +79,7 @@ export default function InventoryTab({ inventory }: { inventory: Product[] }) {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6 flex justify-between">
+      <div className="mb-6 flex flex-col md:flex-row md:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Inventory Management
@@ -88,7 +88,7 @@ export default function InventoryTab({ inventory }: { inventory: Product[] }) {
             Manage your product inventory with {inventory.length} total items
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-4 md:mt-0">
           <button
             onClick={() => setRefetch(true)}
             className="bg-blue-700 text-gray-100 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 cursor-pointer"
@@ -383,7 +383,7 @@ export default function InventoryTab({ inventory }: { inventory: Product[] }) {
       )}
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <CreateInventory onClose={closeModal} />
+        <InventoryForm onClose={closeModal} />
       </Modal>
     </div>
   );

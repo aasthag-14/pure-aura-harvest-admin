@@ -1,3 +1,5 @@
+type YES_NO = "Yes" | "No";
+
 export interface InventoryFormData {
   name: string;
   brand: string;
@@ -12,4 +14,8 @@ export interface InventoryFormData {
   details?: string[];
   images?: string[];
   _id?: string;
+  isBestSeller?: YES_NO;
+  isNewArrival?: YES_NO;
+  inStock?: YES_NO;
+  shortDescription?: string;
 }

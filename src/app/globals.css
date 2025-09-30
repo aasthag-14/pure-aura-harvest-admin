@@ -5,22 +5,35 @@
   --foreground: #171717;
 }
 
-/* @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-} */
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
-
 body {
   /* background: var(--background);
   color: var(--foreground); */
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@theme inline {
+  --font-montserrat: var(--font-montserrat);
+  --font-rinstonia: var(--font-rinstonia);
+}
+
+@layer components {
+  .color-pah-gray {
+    @apply text-[#EAEAEA];
+  }
+  .bg-pah-gray {
+    @apply bg-[#EAEAEA];
+  }
+  @layer components {
+    .container {
+      @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    }
+
+    .btn-primary {
+      @apply bg-gray-800 hover:bg-gray-900 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed;
+    }
+
+    .btn-secondary {
+      @apply border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-colors;
+    }
+  }
 }

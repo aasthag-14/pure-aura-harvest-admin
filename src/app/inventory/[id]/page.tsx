@@ -1,6 +1,6 @@
 "use client";
 
-import CreateInventory from "@/components/CreateInventory";
+import InventoryForm from "@/components/InventoryForm";
 import Modal from "@/components/Modal";
 import { Product } from "@/types/product";
 import axios from "axios";
@@ -62,13 +62,13 @@ const ViewProduct: React.FC = () => {
       <div className="flex flex-col md:flex-row gap-6">
         {/* Product Image */}
         <div className="w-full md:w-1/3">
-          {product.image || (product.images && product.images.length > 0) ? (
+          {product.images.length > 0 ? (
             <Image
               width={500}
               height={500}
-              src={product.image || product.images[0]}
+              src={`${process.env.NEXT_PUBLIC_APP_URL}${product.images?.[0]}`}
               alt={product.name}
-              className="w-full h-64 object-cover rounded-xl shadow"
+              className="w-full h-64 object-cover rounded-xl shadows"
             />
           ) : (
             <div className="w-full h-64 bg-gray-200 flex items-center justify-center rounded-xl">
@@ -115,10 +115,7 @@ const ViewProduct: React.FC = () => {
             >
               {product?.active ? "Deactivate" : "Activate"}
             </button>
-            <button
-              onClick={handleEdit}
-              className="px-4 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition"
-            >
+            <button onClick={handleEdit} className="btn-primary">
               Edit
             </button>
             <button
@@ -127,10 +124,7 @@ const ViewProduct: React.FC = () => {
             >
               Delete
             </button>
-            <Link
-              href="/"
-              className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 font-medium transition"
-            >
+            <Link href="/" className="btn-secondary">
               Close
             </Link>
           </div>
@@ -162,29 +156,6 @@ const ViewProduct: React.FC = () => {
                 <li key={idx}>{d}</li>
               ))}
             </ul>
-          </div>
-        )}
-
-        {product.nutrition && (
-          <div>
-            <h2 className="text-lg font-semibold mb-2 text-gray-800">
-              Nutrition
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-gray-700">
-              {Object.entries(product.nutrition).map(([key, val]) => (
-                <div key={key} className="bg-gray-50 p-2 rounded-lg text-sm">
-                  <span className="font-medium capitalize">{key}: </span>
-                  <span>{val}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {product.usage && (
-          <div>
-            <h2 className="text-lg font-semibold mb-2 text-gray-800">Usage</h2>
-            <p className="text-gray-700">{product.usage}</p>
           </div>
         )}
 
@@ -257,9 +228,10 @@ const ViewProduct: React.FC = () => {
       </div>
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <CreateInventory
+        <InventoryForm
           onClose={closeModal}
           formData={{
+            ...product,
             _id: product._id,
             name: product.name,
             brand: product.brand,
@@ -272,6 +244,11 @@ const ViewProduct: React.FC = () => {
             details: product.details,
             benefits: product.benefits,
             images: product.images,
+            sku: product.sku,
+            isBestSeller: product.isBestSeller,
+            isNewArrival: product.isNewArrival,
+            inStock: product.inStock,
+            shortDescription: product.shortDescription,
           }}
           isEdit
         />

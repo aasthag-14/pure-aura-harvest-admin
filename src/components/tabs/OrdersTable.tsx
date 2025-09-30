@@ -18,31 +18,30 @@ const OrdersTable: React.FC<{
         return (
           <div
             key={order._id}
-            className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+            className="border border-gray-200 rounded-xl bg-white shadow-sm mt-6"
           >
             {/* Collapsed View - Minimal Info */}
             <div
               onClick={() => toggleOrder(order._id)}
               className="p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      Order #{order._id}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {new Date(order?.orderDate).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                  </div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                    Order #{order._id}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    {new Date(order?.orderDate).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
 
-                  <span
-                    className={`
-                    px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide
+                <span
+                  className={`
+                    px-2 sm:px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide whitespace-nowrap flex-shrink-0
                     ${
                       order.status === "delivered"
                         ? "bg-green-100 text-green-800"
@@ -55,42 +54,41 @@ const OrdersTable: React.FC<{
                         : "bg-gray-100 text-gray-800"
                     }
                   `}
-                  >
-                    {order.status}
-                  </span>
+                >
+                  {order.status}
+                </span>
+              </div>
+
+              {/* Bottom Row: Amount & Items */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-gray-900 text-base sm:text-lg">
+                    {order.currency} {order.totalAmount}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {order.items.length}{" "}
+                    {order.items.length === 1 ? "item" : "items"}
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="font-bold text-gray-900">
-                      {order.currency} {order.totalAmount}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {order.items.length}{" "}
-                      {order.items.length === 1 ? "item" : "items"}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`
-                    w-5 h-5 flex items-center justify-center transform transition-transform duration-200
+                <div
+                  className={`
+                    w-8 h-8 flex items-center justify-center transform transition-transform duration-200 flex-shrink-0
                     ${isExpanded ? "rotate-180" : "rotate-0"}
                   `}
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="w-4 h-4 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </div>
               </div>
             </div>

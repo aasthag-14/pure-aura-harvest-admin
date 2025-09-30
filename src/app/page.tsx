@@ -16,7 +16,7 @@ export default async function Home() {
 
   // console.log(session);
   return (
-    <main className="p-10">
+    <main className="mx-auto">
       <h1 className="font-bold text-center text-4xl">Admin</h1>
       {/* <Login /> */}
       <Admin />

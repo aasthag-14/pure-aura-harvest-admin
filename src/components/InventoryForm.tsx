@@ -61,7 +61,7 @@ const getInitialValues = (formData?: InventoryFormData): InventoryForm => {
   };
 };
 
-export default function CreateInventory({
+export default function InventoryForm({
   onClose,
   formData,
   isEdit,
@@ -292,9 +292,9 @@ export default function CreateInventory({
                 }`}
               >
                 <option value="">Select a brand</option>
-                {BRANDS.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand}
+                {Object.values(BRANDS).map((brand) => (
+                  <option key={brand.name} value={brand.name}>
+                    {brand.name}
                   </option>
                 ))}
               </select>
