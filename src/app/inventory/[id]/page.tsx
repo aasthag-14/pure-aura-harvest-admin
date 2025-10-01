@@ -62,7 +62,7 @@ const ViewProduct: React.FC = () => {
       <div className="flex flex-col md:flex-row gap-6">
         {/* Product Image */}
         <div className="w-full md:w-1/3">
-          {product.images.length > 0 ? (
+          {product.images?.length > 0 ? (
             <Image
               width={500}
               height={500}

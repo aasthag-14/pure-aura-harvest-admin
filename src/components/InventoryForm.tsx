@@ -26,6 +26,7 @@ interface InventoryForm {
   benefits: string;
   images: string;
   sku: string;
+  id: string;
   isBestSeller?: YES_NO;
   isNewArrival?: YES_NO;
   inStock?: YES_NO;
@@ -45,6 +46,7 @@ const defaultValues: InventoryForm = {
   benefits: "",
   images: "",
   sku: "",
+  id: "",
   isBestSeller: "No",
   isNewArrival: "No",
   inStock: "Yes",
@@ -245,7 +247,29 @@ export default function InventoryForm({
                 </p>
               )}
             </div>
-
+            <div>
+              <label
+                htmlFor="id"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                ID *
+              </label>
+              <input
+                id="id"
+                type="text"
+                {...register("id", {
+                  required: "ID is required to create a slug",
+                })}
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                  errors.id ? "border-red-300 bg-red-50" : "border-gray-300"
+                }`}
+                placeholder="Enter product id: lemongrass-hanging-car-perfume"
+                aria-invalid={errors.id ? "true" : "false"}
+              />
+              {errors.id && (
+                <p className="mt-1 text-sm text-red-600">{errors.id.message}</p>
+              )}
+            </div>
             <div>
               <label
                 htmlFor="shortDescription"
