@@ -1,39 +1,37 @@
 export interface OrderItem {
-  productId: string;
-  productName: string;
-  brand: string;
+  id: string;
+  name: string;
+  image: string;
+  price: string; // you might consider number if this should be numeric
   quantity: number;
-  unitPrice: number;
-  totalPrice: number;
 }
 
 export interface Address {
   fullName: string;
   phone: string;
-  addressLine1: string;
-  addressLine2?: string;
+  address: string;
   city: string;
   state: string;
-  postalCode: string;
-  country: string;
+  pincode: string;
+  email: string;
 }
 
 export interface Order {
   _id: string;
-  userId: string;
-  orderDate: Date; // defaulted in backend
-  status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-  paymentStatus?: "unpaid" | "paid" | "refunded" | "failed";
-  paymentMethod: "credit_card" | "cod" | "upi" | "bank_transfer";
-  totalAmount: number;
-  currency?: string;
+  order_id: string;
+  customer: {
+    mobile: string;
+    addressForm: Address;
+  };
   items: OrderItem[];
-  shippingAddress: Address;
-  billingAddress?: Address;
-  shippingMethod: "standard" | "express" | "same_day";
-  trackingNumber?: string;
-  estimatedDeliveryDate?: Date | string;
-  notes?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  total_amount: number;
+  razorpay_order_id: string;
+  payment: {
+    status: "pending" | "success" | "failed";
+    razorpay_payment_id: string | null;
+    razorpay_signature: string | null;
+  };
+  order_status: "created" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  created_at: string; // could be Date if you parse it
+  updated_at: string; // could be Date if you parse it
 }

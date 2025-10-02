@@ -13,25 +13,25 @@ const OrdersTable: React.FC<{
   return (
     <div className="space-y-4">
       {orders?.map((order) => {
-        const isExpanded = expandedOrder === order._id;
+        const isExpanded = expandedOrder === order?._id;
 
         return (
           <div
-            key={order._id}
+            key={order?._id}
             className="border border-gray-200 rounded-xl bg-white shadow-sm mt-6"
           >
             {/* Collapsed View - Minimal Info */}
             <div
-              onClick={() => toggleOrder(order._id)}
+              onClick={() => toggleOrder(order?._id)}
               className="p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
-                    Order #{order._id}
+                    Order #{order?._id}
                   </h3>
                   <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-                    {new Date(order?.orderDate).toLocaleDateString("en-US", {
+                    {new Date(order?.created_at).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
@@ -43,19 +43,19 @@ const OrdersTable: React.FC<{
                   className={`
                     px-2 sm:px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide whitespace-nowrap flex-shrink-0
                     ${
-                      order.status === "delivered"
+                      order?.order_status === "delivered"
                         ? "bg-green-100 text-green-800"
-                        : order.status === "pending"
+                        : order?.order_status === "created"
                         ? "bg-yellow-100 text-yellow-800"
-                        : order.status === "processing"
+                        : order?.order_status === "confirmed"
                         ? "bg-blue-100 text-blue-800"
-                        : order.status === "cancelled"
+                        : order?.order_status === "cancelled"
                         ? "bg-red-100 text-red-800"
                         : "bg-gray-100 text-gray-800"
                     }
                   `}
                 >
-                  {order.status}
+                  {order?.order_status}
                 </span>
               </div>
 
@@ -63,11 +63,11 @@ const OrdersTable: React.FC<{
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-bold text-gray-900 text-base sm:text-lg">
-                    {order.currency} {order.totalAmount}
+                    INR {order?.total_amount}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {order.items.length}{" "}
-                    {order.items.length === 1 ? "item" : "items"}
+                    {order?.items.length}{" "}
+                    {order?.items.length === 1 ? "item" : "items"}
                   </p>
                 </div>
                 <div
@@ -109,12 +109,12 @@ const OrdersTable: React.FC<{
                     </h4>
                     <div className="bg-gray-50 rounded-lg p-3 space-y-1">
                       <p className="text-sm">
-                        <span className="font-medium">User ID:</span>{" "}
-                        {order.userId}
+                        <span className="font-medium">Order ID:</span>{" "}
+                        {order?.order_id}
                       </p>
                       <p className="text-sm">
                         <span className="font-medium">Order Date:</span>{" "}
-                        {new Date(order?.orderDate).toLocaleDateString(
+                        {new Date(order?.created_at).toLocaleDateString(
                           "en-US",
                           {
                             year: "numeric",
@@ -137,20 +137,20 @@ const OrdersTable: React.FC<{
                           className={`
                           ml-2 font-semibold
                           ${
-                            order.paymentStatus === "paid"
+                            order?.payment?.status === "success"
                               ? "text-green-600"
-                              : order.paymentStatus === "unpaid"
+                              : order?.payment?.status === "pending"
                               ? "text-yellow-600"
                               : "text-red-600"
                           }
                         `}
                         >
-                          {order.paymentStatus}
+                          {order?.payment?.status}
                         </span>
                       </p>
                       <p className="text-sm">
                         <span className="font-medium">Method:</span>{" "}
-                        {order.paymentMethod}
+                        {order?.payment?.razorpay_payment_id}
                       </p>
                     </div>
                   </div>
@@ -161,47 +161,35 @@ const OrdersTable: React.FC<{
                   <h4 className="font-semibold text-gray-900 text-sm uppercase tracking-wide flex items-center gap-2">
                     Order Items
                     <span className="bg-gray-200 text-gray-600 text-xs px-2 py-1 rounded-full normal-case">
-                      {order.items.length}
+                      {order?.items.length}
                     </span>
                   </h4>
 
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {order.items.map((item, index) => (
+                    {order?.items.map((item, index) => (
                       <div
-                        key={item.productId}
+                        key={item?.id}
                         className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <h5 className="text-sm font-semibold text-gray-900 leading-tight">
-                            {item.productName}
+                            {item?.name}
                           </h5>
                           <span className="text-xs bg-white px-2 py-1 rounded-full text-gray-500 flex-shrink-0 ml-2">
                             #{index + 1}
                           </span>
                         </div>
 
-                        <p className="text-xs text-gray-600 mb-2 font-medium">
-                          {item.brand}
-                        </p>
-
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs">
                             <span className="text-gray-600">Qty:</span>
-                            <span className="font-medium">{item.quantity}</span>
+                            <span className="font-medium">
+                              {item?.quantity}
+                            </span>
                           </div>
                           <div className="flex justify-between text-xs">
                             <span className="text-gray-600">Unit:</span>
-                            <span className="font-medium">
-                              ₹{item.unitPrice}
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs pt-1 border-t border-gray-200">
-                            <span className="font-semibold text-gray-900">
-                              Total:
-                            </span>
-                            <span className="font-bold text-gray-900">
-                              ₹{item.totalPrice}
-                            </span>
+                            <span className="font-medium">₹{item.price}</span>
                           </div>
                         </div>
                       </div>
@@ -217,23 +205,20 @@ const OrdersTable: React.FC<{
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="text-sm text-gray-700 space-y-1">
                       <p className="font-semibold text-gray-900">
-                        {order.shippingAddress.fullName}
+                        {order?.customer?.addressForm?.fullName}
                       </p>
                       <p className="text-gray-600">
-                        {order.shippingAddress.phone}
+                        {order?.customer?.addressForm?.phone}
                       </p>
                       <div className="pt-1 space-y-0.5">
-                        <p>{order.shippingAddress.addressLine1}</p>
-                        {order.shippingAddress.addressLine2 && (
-                          <p>{order.shippingAddress.addressLine2}</p>
+                        <p>{order?.customer?.addressForm?.address}</p>
+                        {order?.customer?.addressForm?.city && (
+                          <p>{order?.customer?.addressForm?.city}</p>
                         )}
                         <p>
-                          {order.shippingAddress.city},{" "}
-                          {order.shippingAddress.state} -{" "}
-                          {order.shippingAddress.postalCode}
-                        </p>
-                        <p className="font-medium">
-                          {order.shippingAddress.country}
+                          {order?.customer?.addressForm?.city},{" "}
+                          {order?.customer?.addressForm?.state} -{" "}
+                          {order?.customer?.addressForm?.pincode}
                         </p>
                       </div>
                     </div>
