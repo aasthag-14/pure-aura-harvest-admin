@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import InventoryTab from "./tabs/InventoryTab";
 import OrdersTable from "./tabs/OrdersTable";
 import CouponsTab from "./tabs/CouponsTab";
+import CollectionsTab from "./tabs/CollectionsTab";
 
 type TabsProps = {
   activeTab: string;
@@ -93,6 +94,8 @@ export const TabContent = ({ activeTab }: { activeTab: string }) => {
       );
     case "Inventory":
       return <InventoryTab inventory={inventory} />;
+    case "Collections":
+      return <CollectionsTab />;
     case "Settings":
       return (
         <div className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-300 w-full">

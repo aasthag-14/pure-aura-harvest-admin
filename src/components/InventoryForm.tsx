@@ -1,8 +1,9 @@
 "use client";
-import { BRANDS, existingCategories, YES_NO } from "@/constants";
+import { BRANDS, YES_NO } from "@/constants";
 import { InventoryFormData } from "@/types/inventory";
+import { Collection } from "@/types/collection";
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface CreateInventoryFormProps {
@@ -70,6 +71,28 @@ export default function InventoryForm({
 }: CreateInventoryFormProps) {
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [collections, setCollections] = useState<Collection[]>([]);
+
+  useEffect(() => {
+    async function loadCollections() {
+      try {
+        const res = await fetch("/api/collections", { cache: "no-store" });
+        const json = (await res.json()) as Collection[];
+        setCollections(json || []);
+      } catch (e) {
+        console.error(e);
+        setCollections([]);
+      }
+    }
+    loadCollections();
+  }, []);
+
+  useEffect(() => {
+    if (formData?.category) {
+      const exists = collections.some((c) => c.id === formData.category);
+      setIsCustomCategory(!exists);
+    }
+  }, [collections, formData?.category]);
 
   const {
     register,
@@ -475,9 +498,9 @@ export default function InventoryForm({
                   }`}
                 >
                   <option value="">Select a category</option>
-                  {existingCategories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
+                  {collections.map((c) => (
+                    <option key={c._id || c.id} value={c.id}>
+                      {c.title}
                     </option>
                   ))}
                 </select>
