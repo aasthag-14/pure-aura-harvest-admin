@@ -1,4 +1,4 @@
-export const TABS = ["Inventory", "Orders", "Users", "Coupons"];
+export const TABS = ["Inventory", "Collections", "Orders", "Users", "Coupons"];
 export const currencyKey = "currency";
 export const existingCategories = [
   "aromatherapy",

@@ -1,9 +1,10 @@
 import { useAppData } from "@/context/AppDataContext";
 import { Product } from "@/types/product";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Modal from "../Modal";
 import InventoryForm from "../InventoryForm";
+import { Collection } from "@/types/collection";
 
 export default function InventoryTab({ inventory }: { inventory: Product[] }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -12,12 +13,26 @@ export default function InventoryTab({ inventory }: { inventory: Product[] }) {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { setRefetch } = useAppData();
+  const [collections, setCollections] = useState<Collection[]>([]);
 
-  // Get unique categories
+  useEffect(() => {
+    async function loadCollections() {
+      try {
+        const res = await fetch("/api/collections", { cache: "no-store" });
+        const json = (await res.json()) as Collection[];
+        setCollections(json || []);
+      } catch (e) {
+        console.error(e);
+        setCollections([]);
+      }
+    }
+    loadCollections();
+  }, []);
+
+  // Build categories from collections (values are ids)
   const categories = useMemo(() => {
-    const cats = [...new Set(inventory.map((item) => item.category))];
-    return ["All", ...cats];
-  }, [inventory]);
+    return ["All", ...collections.map((c) => c.id)];
+  }, [collections]);
 
   // Filter and sort inventory
   const filteredInventory = useMemo(() => {
@@ -139,11 +154,20 @@ export default function InventoryTab({ inventory }: { inventory: Product[] }) {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
           >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
+            {categories.map((category) => {
+              if (category === "All")
+                return (
+                  <option key="All" value="All">
+                    All
+                  </option>
+                );
+              const col = collections.find((c) => c.id === category);
+              return (
+                <option key={category} value={category}>
+                  {col?.title || category}
+                </option>
+              );
+            })}
           </select>
 
           {/* Sort Options */}
