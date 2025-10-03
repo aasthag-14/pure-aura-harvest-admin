@@ -22,4 +22,8 @@ export const BRANDS = {
     name: "Luxe Aroma",
     href: "luxe-aroma",
   },
+  QRMYCAR: {
+    name: "QrMyCar",
+    href: "qrmycar",
+  },
 };

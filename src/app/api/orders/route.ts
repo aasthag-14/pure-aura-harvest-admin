@@ -7,6 +7,7 @@ export async function GET() {
       .db("pure-aura-harvest")
       .collection("orders")
       .find()
+      .sort({ updated_at: -1 })
       .toArray();
 
     return NextResponse.json(orders);

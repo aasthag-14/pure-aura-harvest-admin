@@ -15,13 +15,14 @@ type TabsProps = {
 
 const Tabs = ({ activeTab, setActiveTab }: TabsProps) => {
   return (
-    <div className="flex gap-1 mt-6 p-1 bg-gray-100 rounded-lg w-fit mx-auto">
-      {TABS.map((tab) => (
-        <button
-          key={tab}
-          onClick={() => setActiveTab(tab)}
-          className={`
-            px-4 py-2 rounded-md font-medium text-sm
+    <div className="mt-6 p-1 bg-gray-100 rounded-lg w-full sm:w-fit mx-auto overflow-x-auto">
+      <div className="flex flex-nowrap gap-1 min-w-max">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`
+            px-3 sm:px-4 py-2 rounded-md font-medium text-xs sm:text-sm flex-none
             transition-all duration-200 ease-in-out
             relative overflow-hidden
             ${
@@ -30,13 +31,14 @@ const Tabs = ({ activeTab, setActiveTab }: TabsProps) => {
                 : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
             }
           `}
-        >
-          <span className="relative z-10">{tab}</span>
-          {activeTab === tab && (
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-md" />
-          )}
-        </button>
-      ))}
+          >
+            <span className="relative z-10">{tab}</span>
+            {activeTab === tab && (
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-md" />
+            )}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
