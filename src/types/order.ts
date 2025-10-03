@@ -2,7 +2,8 @@ export interface OrderItem {
   id: string;
   name: string;
   image: string;
-  price: string; // you might consider number if this should be numeric
+  unitPrice: string; // you might consider number if this should be numeric
+  originalPrice: number;
   quantity: number;
 }
 
@@ -34,4 +35,8 @@ export interface Order {
   order_status: "created" | "confirmed" | "shipped" | "delivered" | "cancelled";
   created_at: string; // could be Date if you parse it
   updated_at: string; // could be Date if you parse it
+  coupon?: {
+    code: string;
+    discount: number;
+  };
 }

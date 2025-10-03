@@ -1,7 +1,6 @@
 // "use client";
 // import Admin from "@/components/Admin";
 // import Login from "@/components/Login";
-import React from "react";
 // import { auth } from "../../auth";
 import Admin from "@/components/Admin";
 // import { useSession } from "next-auth/react";
@@ -17,7 +16,6 @@ export default async function Home() {
   // console.log(session);
   return (
     <main className="mx-auto">
-      <h1 className="font-bold text-center text-4xl">Admin</h1>
       {/* <Login /> */}
       <Admin />
       {/* {isLoggedIn && <Admin />}
