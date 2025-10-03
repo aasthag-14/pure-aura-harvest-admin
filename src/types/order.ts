@@ -39,4 +39,5 @@ export interface Order {
     code: string;
     discount: number;
   };
+  shippingFee?: number;
 }

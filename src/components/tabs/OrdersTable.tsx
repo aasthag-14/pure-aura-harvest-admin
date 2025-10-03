@@ -318,6 +318,14 @@ const OrdersTable: React.FC<{
                         </div>
                       </div>
                       <div className="flex justify-between">
+                        <span className="text-gray-600">Shipping</span>
+                        <span className="font-semibold">
+                          {order?.shippingFee
+                            ? formatInr(order?.shippingFee)
+                            : "FREE"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
                         <span className="text-gray-600">Total Amount</span>
                         <span className="font-semibold">
                           {formatInr(order?.total_amount)}
