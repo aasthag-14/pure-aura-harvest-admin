@@ -1,10 +1,13 @@
-type CouponType = "PERCENT" | "FLAT";
+type CouponType = "PERCENT" | "FLAT" | "B1G1";
+type CouponScope = "ALL" | "COLLECTION";
 interface Coupon {
   _id: string;
   code: string;
   description?: string | null;
   type: CouponType;
   value: number;
+  scope?: CouponScope; // default ALL if missing
+  collectionId?: string | null; // applicable when scope === "COLLECTION"
   maxDiscount?: number | null;
   minOrder?: number | null;
   usageLimit?: number | null;
@@ -24,4 +27,4 @@ type ListResponse = {
   pageSize: number;
 };
 
-export type { CouponType, Coupon, ListResponse };
+export type { CouponType, CouponScope, Coupon, ListResponse };

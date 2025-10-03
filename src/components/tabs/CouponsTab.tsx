@@ -38,7 +38,7 @@ const PAGE_SIZES = [10, 20, 50, 100];
 export default function CouponsTab() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | "active" | "inactive">("all");
-  const [type, setType] = useState<"all" | "PERCENT" | "FLAT">("all");
+  const [type, setType] = useState<"all" | "PERCENT" | "FLAT" | "B1G1">("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(false);
@@ -231,13 +231,14 @@ export default function CouponsTab() {
           <select
             value={type}
             onChange={(e) =>
-              setType(e.target.value as "all" | "PERCENT" | "FLAT")
+              setType(e.target.value as "all" | "PERCENT" | "FLAT" | "B1G1")
             }
             className="px-3 py-2 rounded-lg border border-gray-200"
           >
             <option value="all">All Types</option>
             <option value="PERCENT">Percent</option>
             <option value="FLAT">Flat</option>
+            <option value="B1G1">B1G1</option>
           </select>
           <select
             value={pageSize}

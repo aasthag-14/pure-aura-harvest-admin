@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import type { Collection } from "@/types/collection";
+import { Coupon, CouponScope, CouponType } from "@/types/coupons";
 import { X } from "lucide-react";
-import { Coupon, CouponType } from "@/types/coupons";
+import React, { useEffect, useState } from "react";
 
 interface CouponFormData {
   code: string;
   description: string;
   type: CouponType;
   value: number;
+  scope?: CouponScope;
+  collectionId?: string | null;
   maxDiscount?: number;
   minOrder?: number;
   usageLimit?: number;
@@ -34,6 +37,8 @@ export default function CouponForm({
     description: "",
     type: "PERCENT",
     value: 10,
+    scope: "ALL",
+    collectionId: null,
     maxDiscount: undefined,
     minOrder: undefined,
     usageLimit: undefined,
@@ -43,6 +48,7 @@ export default function CouponForm({
     isActive: true,
   });
   const [saving, setSaving] = useState(false);
+  const [collections, setCollections] = useState<Collection[]>([]);
   const isEdit = mode === "edit" && coupon;
 
   useEffect(() => {
@@ -56,6 +62,21 @@ export default function CouponForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, coupon?._id]);
 
+  useEffect(() => {
+    async function fetchCollections() {
+      try {
+        const res = await fetch("/api/collections", { cache: "no-store" });
+        if (res.ok) {
+          const data = (await res.json()) as Collection[];
+          setCollections(data);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    fetchCollections();
+  }, []);
+
   function update<K extends keyof Coupon>(key: K, val: Coupon[K]) {
     setForm((prev) => ({ ...prev, [key]: val }));
   }
@@ -63,11 +84,17 @@ export default function CouponForm({
   async function save() {
     setSaving(true);
     try {
+      const isB1G1 = form.type === "B1G1";
       const payload: CouponFormData = {
         code: String(form.code || "").toUpperCase(),
         description: form.description || "",
         type: form.type || "PERCENT",
-        value: Number(form.value || 0),
+        value: isB1G1 ? 0 : Number(form.value || 0),
+        scope: form.scope || "ALL",
+        collectionId:
+          (form.scope || "ALL") === "COLLECTION"
+            ? form.collectionId || null
+            : null,
         maxDiscount: form.maxDiscount ? Number(form.maxDiscount) : undefined,
         minOrder: form.minOrder ? Number(form.minOrder) : undefined,
         usageLimit: form.usageLimit ? Number(form.usageLimit) : undefined,
@@ -128,30 +155,67 @@ export default function CouponForm({
             >
               <option value="PERCENT">Percent</option>
               <option value="FLAT">Flat</option>
+              <option value="B1G1">B1G1</option>
             </select>
           </div>
+          {form.type !== "B1G1" && (
+            <div>
+              <label className="block text-sm text-gray-600">
+                Value {form.type === "PERCENT" ? "(%)" : "(₹)"}
+              </label>
+              <input
+                type="number"
+                value={form.value}
+                onChange={(e) => update("value", Number(e.target.value))}
+                className="w-full px-3 py-2 rounded border border-gray-200"
+              />
+            </div>
+          )}
+          {form.type !== "B1G1" && (
+            <div>
+              <label className="block text-sm text-gray-600">
+                Max Discount (₹)
+              </label>
+              <input
+                type="number"
+                value={form.maxDiscount ?? ""}
+                onChange={(e) => update("maxDiscount", +e.target.value)}
+                className="w-full px-3 py-2 rounded border border-gray-200"
+              />
+            </div>
+          )}
           <div>
-            <label className="block text-sm text-gray-600">
-              Value {form.type === "PERCENT" ? "(%)" : "(₹)"}
-            </label>
-            <input
-              type="number"
-              value={form.value}
-              onChange={(e) => update("value", Number(e.target.value))}
+            <label className="block text-sm text-gray-600">Scope</label>
+            <select
+              value={form.scope || "ALL"}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                update("scope", e.target.value as CouponScope)
+              }
               className="w-full px-3 py-2 rounded border border-gray-200"
-            />
+            >
+              <option value="ALL">All Collections</option>
+              <option value="COLLECTION">Specific Collection</option>
+            </select>
           </div>
-          <div>
-            <label className="block text-sm text-gray-600">
-              Max Discount (₹)
-            </label>
-            <input
-              type="number"
-              value={form.maxDiscount ?? ""}
-              onChange={(e) => update("maxDiscount", +e.target.value)}
-              className="w-full px-3 py-2 rounded border border-gray-200"
-            />
-          </div>
+          {(form.scope || "ALL") === "COLLECTION" && (
+            <div>
+              <label className="block text-sm text-gray-600">Collection</label>
+              <select
+                value={form.collectionId || ""}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  update("collectionId", e.target.value || null)
+                }
+                className="w-full px-3 py-2 rounded border border-gray-200"
+              >
+                <option value="">Select collection…</option>
+                {collections.map((col) => (
+                  <option key={col.id} value={col.id}>
+                    {col.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-sm text-gray-600">Min Order (₹)</label>
             <input
