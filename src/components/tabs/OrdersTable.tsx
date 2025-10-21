@@ -1,57 +1,11 @@
 "use client";
 import { Order } from "@/types/order";
+import { formatDate, formatInr } from "@/utils/helpers";
 import React, { useState } from "react";
 const OrdersTable: React.FC<{
   orders: Order[];
 }> = ({ orders }) => {
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-
-  // Helpers
-  function parseToDate(input: unknown): Date | null {
-    if (input == null) return null;
-    // Accept number (seconds or ms) or string
-    if (typeof input === "number") {
-      const ms = input < 1_000_000_000_000 ? input * 1000 : input;
-      return new Date(ms);
-    }
-    if (typeof input === "string") {
-      const num = Number(input);
-      if (!Number.isNaN(num)) {
-        const ms = num < 1_000_000_000_000 ? num * 1000 : num;
-        return new Date(ms);
-      }
-      const d = new Date(input);
-      return Number.isNaN(d.getTime()) ? null : d;
-    }
-    try {
-      const d = new Date(String(input));
-      return Number.isNaN(d.getTime()) ? null : d;
-    } catch {
-      return null;
-    }
-  }
-
-  function formatDate(input: unknown): string {
-    const d = parseToDate(input);
-    if (!d) return "-";
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  function formatInr(n: unknown): string {
-    const num = typeof n === "string" ? Number(n) : (n as number);
-    if (Number.isNaN(num as number)) return String(n ?? "-");
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(num as number);
-  }
 
   const toggleOrder = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
@@ -65,9 +19,8 @@ const OrdersTable: React.FC<{
         return (
           <div
             key={order?._id}
-            className="border border-gray-200 rounded-xl bg-white shadow-sm mt-6"
+            className="border border-gray-200 rounded-xl bg-white shadow-sm mt-6 w-[90vw] md:w-full"
           >
-            {/* Collapsed View - Minimal Info */}
             <div
               onClick={() => toggleOrder(order?._id)}
               className="p-4 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
@@ -249,10 +202,10 @@ const OrdersTable: React.FC<{
                             <span className="text-gray-600">Unit:</span>
                             <div className="flex gap-2">
                               <span className="font-medium">
-                                {formatInr(item.unitPrice)}
+                                {formatInr(Number(item.unitPrice))}
                               </span>
                               <span className="font-medium line-through">
-                                {formatInr(item.originalPrice)}
+                                {formatInr(Number(item.originalPrice))}
                               </span>{" "}
                             </div>
                           </div>

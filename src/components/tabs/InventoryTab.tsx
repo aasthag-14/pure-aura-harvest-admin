@@ -5,25 +5,31 @@ import { useEffect, useMemo, useState } from "react";
 import Modal from "../Modal";
 import InventoryForm from "../InventoryForm";
 import { Collection } from "@/types/collection";
-
+import { InventoryShimmer } from "../loaders/ShimmerLoader";
 export default function InventoryTab({ inventory }: { inventory: Product[] }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState<keyof Product>("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
   const { setRefetch } = useAppData();
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadCollections() {
       try {
+        setLoading(true);
         const res = await fetch("/api/collections", { cache: "no-store" });
         const json = (await res.json()) as Collection[];
         setCollections(json || []);
+        setLoading(false);
       } catch (e) {
         console.error(e);
         setCollections([]);
+        setLoading(false);
       }
     }
     loadCollections();
@@ -91,8 +97,24 @@ export default function InventoryTab({ inventory }: { inventory: Product[] }) {
     setRefetch(true);
   };
 
+  const openEditModal = (product: Product) => {
+    setIsEditModalOpen(true);
+    setProduct(product);
+  };
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setProduct(null);
+    setRefetch(true);
+  };
+
+    const handleEdit = (product: Product) => {
+    openEditModal(product);
+  };
+
+  if (loading) return <InventoryShimmer />;
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto w-[95vw] md:w-[100vw]">
       {/* Header */}
       <div className="mb-6 flex flex-col md:flex-row md:justify-between">
         <div>
@@ -293,12 +315,6 @@ export default function InventoryTab({ inventory }: { inventory: Product[] }) {
                 >
                   {stockStatus.status}
                 </span>
-                <Link
-                  href={`/inventory/${item._id}`}
-                  className="text-blue-600 font-medium hover:underline"
-                >
-                  View
-                </Link>
               </div>
 
               {/* Category */}
@@ -355,25 +371,23 @@ export default function InventoryTab({ inventory }: { inventory: Product[] }) {
                     )}
                   </div>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                  <span className="text-sm font-medium text-gray-700">
-                    Total Value
-                  </span>
-                  <span className="font-bold text-xl text-gray-900">
-                    ₹{(item.stock * item.price).toLocaleString()}
-                  </span>
-                </div>
               </div>
 
               {/* Actions */}
-              {/* <div className="flex gap-2 pt-3 border-t border-gray-100">
-                <button className="flex-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium">
+              <div className="flex gap-2 pt-3 border-t border-gray-100">
+                <button
+                  onClick={() => handleEdit(item)}
+                  className="flex-1 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                >
                   Edit Item
                 </button>
-                <button className="px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium">
+                <Link
+                  href={`/inventory/${item._id}`}
+                  className="px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
+                >
                   View Details
-                </button>
-              </div> */}
+                </Link>
+              </div>
             </div>
           );
         })}
@@ -406,8 +420,34 @@ export default function InventoryTab({ inventory }: { inventory: Product[] }) {
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={closeModal}>
-        <InventoryForm onClose={closeModal} />
+      <Modal isOpen={isModalOpen || isEditModalOpen} onClose={closeModal}>
+        {isModalOpen && <InventoryForm onClose={closeModal} />}
+        {isEditModalOpen && product && (
+          <InventoryForm
+            onClose={closeEditModal}
+            formData={{
+              ...product,
+              _id: product._id,
+              name: product.name,
+              brand: product.brand,
+              category: product.category,
+              price: product.price,
+              stock: product.stock,
+              discount: product.discount || 0,
+              minStockLevel: product.minStockLevel || 10,
+              description: product.description,
+              details: product.details,
+              benefits: product.benefits,
+              images: product.images,
+              sku: product.sku,
+              isBestSeller: product.isBestSeller,
+              isNewArrival: product.isNewArrival,
+              inStock: product.inStock,
+              shortDescription: product.shortDescription,
+            }}
+            isEdit
+          />
+        )}
       </Modal>
     </div>
   );

@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Plus, Search, Trash2, Pencil, Loader2 } from "lucide-react";
 import { Collection } from "@/types/collection";
+import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import CollectionForm from "../forms/CollectionForm";
+import { CollectionsShimmer } from "../loaders/ShimmerLoader";
 
 export default function CollectionsTab() {
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [items, setItems] = useState<Collection[]>([]);
   const [showForm, setShowForm] = useState<
     false | { mode: "create" } | { mode: "edit"; item: Collection }
@@ -51,8 +52,10 @@ export default function CollectionsTab() {
     fetchCollections();
   }
 
+  if(loading) return <CollectionsShimmer />;
+
   return (
-    <div className="border border-gray-200 rounded-xl bg-white shadow-sm transition-all duration-300 w-full mt-6">
+    <div className="border border-gray-200 rounded-xl bg-white shadow-sm transition-all duration-300 w-[90vw] md:w-full mt-6">
       <div className="p-4 flex flex-col sm:flex-row gap-3 sm:items-center">
         <h2 className="font-bold text-lg">Collections</h2>
         <div className="flex-1" />
@@ -76,17 +79,12 @@ export default function CollectionsTab() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="p-8 text-center text-gray-500">
-          <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
-          Loading…
-        </div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="p-8 text-center text-gray-500">
           No collections found
         </div>
       ) : (
-        <div className="divide-y">
+        <div className="divide-y divide-gray-200">
           {filtered.map((c) => (
             <div key={c._id} className="p-4 flex items-start gap-3">
               <div className="flex-1 min-w-0">
