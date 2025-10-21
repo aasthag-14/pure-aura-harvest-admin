@@ -11,6 +11,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+button {
+  cursor: pointer;
+}
+
 @theme inline {
   --font-montserrat: var(--font-montserrat);
   --font-rinstonia: var(--font-rinstonia);

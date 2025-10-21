@@ -2,20 +2,21 @@
 
 import { TABS } from "@/constants";
 import { useAppData } from "@/context/AppDataContext";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import InventoryTab from "./tabs/InventoryTab";
-import OrdersTable from "./tabs/OrdersTable";
-import CouponsTab from "./tabs/CouponsTab";
-import CollectionsTab from "./tabs/CollectionsTab";
 import {
-  OrdersShimmer,
-  UsersShimmer,
-  InventoryShimmer,
   CollectionsShimmer,
   CouponsShimmer,
+  InventoryShimmer,
+  OrdersShimmer,
   SettingsShimmer,
+  UsersShimmer,
 } from "./loaders/ShimmerLoader";
-import { useRouter } from "next/navigation";
+import CollectionsTab from "./tabs/CollectionsTab";
+import CouponsTab from "./tabs/CouponsTab";
+import InventoryTab from "./tabs/InventoryTab";
+import OrdersTable from "./tabs/OrdersTable";
+import UsersTab from "./tabs/UsersTab";
 
 type TabsProps = {
   activeTab: string;
@@ -135,19 +136,7 @@ export const TabContent = ({ activeTab }: { activeTab: string }) => {
     case "Orders":
       return <OrdersTable orders={orders} />;
     case "Users":
-      return (
-        <div className="border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-all duration-300 w-full mt-6  w-[90vw] md:w-full">
-          <h2 className="p-4 font-bold">Users</h2>
-
-          <ul className="p-4">
-            {users.map((u) => (
-              <li key={u.id} className="p-2 border border-gray-200 rounded">
-                {u.email}
-              </li>
-            ))}
-          </ul>
-        </div>
-      );
+      return <UsersTab />;
     case "Inventory":
       return <InventoryTab inventory={inventory} />;
     case "Collections":
