@@ -1,24 +1,14 @@
 import { UpdateUserRequest } from "@/types/user";
 import client from "@/utils/mongodb";
 import { ObjectId } from "mongodb";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(req: NextRequest) {
   try {
-    const { id } = params;
+    const id = req.nextUrl.pathname.split("/").pop();
 
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { error: "Invalid user ID format" },
-        { status: 400 }
-      );
+    if (!id) {
+      return NextResponse.json({ message: "Missing ID" }, { status: 400 });
     }
 
     // Check if user exists
@@ -57,9 +47,12 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   }
 }
 
-export async function PUT(request: Request, { params }: RouteParams) {
+export async function PUT(request: NextRequest) {
   try {
-    const { id } = params;
+    const id = request.nextUrl.pathname.split("/").pop();
+    if (!id) {
+      return NextResponse.json({ message: "Missing ID" }, { status: 400 });
+    }
     const body: UpdateUserRequest = await request.json();
     const { email, name } = body;
 
@@ -155,16 +148,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 }
 
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(request: NextRequest) {
   try {
-    const { id } = params;
-
-    // Validate ObjectId format
-    if (!ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { error: "Invalid user ID format" },
-        { status: 400 }
-      );
+    const id = request.nextUrl.pathname.split("/").pop();
+    if (!id) {
+      return NextResponse.json({ message: "Missing ID" }, { status: 400 });
     }
 
     // Fetch user (without password)
