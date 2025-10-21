@@ -104,13 +104,7 @@ export default function InventoryForm({
   });
 
   const price = watch("price");
-  const stock = watch("stock");
   const discount = watch("discount");
-
-  const calculateTotalValue = (): string => {
-    const total = (price || 0) * (stock || 0);
-    return total.toLocaleString();
-  };
 
   const calculateSellingPrice = (): number => {
     const discountAmount = ((discount || 0) / 100) * (price || 0);
@@ -730,20 +724,6 @@ export default function InventoryForm({
               </p>
             </div>
           </div>
-
-          {/* Total Value */}
-          {price > 0 && stock > 0 && (
-            <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-200">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium text-green-800">
-                  Total Inventory Value:
-                </span>
-                <span className="text-2xl font-bold text-green-900">
-                  ₹{calculateTotalValue()}
-                </span>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Form Actions */}

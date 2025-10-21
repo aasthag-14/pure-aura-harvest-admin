@@ -1,39 +1,21 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { PAGE_SIZES } from "@/constants";
+import { Coupon, ListResponse } from "@/types/coupons";
+import { formatInr, toDateInputValue } from "@/utils/helpers";
 import {
+  Download,
+  Pencil,
   Plus,
   Search,
-  Trash2,
-  Pencil,
-  Download,
-  Loader2,
   ToggleLeft,
   ToggleRight,
+  Trash2,
 } from "lucide-react";
-import { Coupon, ListResponse } from "@/types/coupons";
-import CouponForm from "../forms/CouponForm";
+import { useEffect, useMemo, useState } from "react";
 import ConfirmDialog from "../dialog/ConfirmDialog";
-
-function toDateInputValue(d?: string | null) {
-  if (!d) return "";
-  const dt = new Date(d);
-  const iso = new Date(
-    dt.getTime() - dt.getTimezoneOffset() * 60000
-  ).toISOString();
-  return iso.split("T")[0];
-}
-
-function formatInr(n: number | undefined | null) {
-  if (n == null) return "—";
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
-const PAGE_SIZES = [10, 20, 50, 100];
+import CouponForm from "../forms/CouponForm";
+import { CouponsShimmer } from "../loaders/ShimmerLoader";
 
 export default function CouponsTab() {
   const [query, setQuery] = useState("");
@@ -41,7 +23,7 @@ export default function CouponsTab() {
   const [type, setType] = useState<"all" | "PERCENT" | "FLAT" | "B1G1">("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ListResponse>({
     items: [],
     total: 0,
@@ -63,7 +45,6 @@ export default function CouponsTab() {
   );
 
   async function fetchCoupons() {
-    setLoading(true);
     try {
       const params = new URLSearchParams();
       if (query) params.set("q", query);
@@ -78,6 +59,7 @@ export default function CouponsTab() {
       const json = (await res.json()) as ListResponse;
       setData(json);
       setSelected([]);
+      setLoading(false);
     } catch (e) {
       console.error(e);
     } finally {
@@ -88,9 +70,10 @@ export default function CouponsTab() {
   useEffect(() => {
     fetchCoupons();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, pageSize, status, type]);
+  }, []);
   // Debounce search
   useEffect(() => {
+    if (!query) return;
     const id = setTimeout(() => {
       setPage(1);
       fetchCoupons();
@@ -185,8 +168,10 @@ export default function CouponsTab() {
     fetchCoupons();
   }
 
+  if (loading) return <CouponsShimmer />;
+
   return (
-    <div className="border border-gray-200 rounded-xl bg-white shadow-sm transition-all duration-300 w-full mt-6">
+    <div className="border border-gray-200 rounded-xl bg-white shadow-sm transition-all duration-300 mt-6 w-[95vw]">
       {/* Header */}
       <div className="p-4 flex flex-col sm:flex-row gap-3 sm:items-center">
         <h2 className="font-bold text-lg">Coupons</h2>
@@ -285,7 +270,7 @@ export default function CouponsTab() {
       {/* Table */}
       {data?.items?.length > 0 && (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className=" w-[95vw] md:w-full text-sm">
             <thead className="bg-gray-50 text-gray-600">
               <tr>
                 <th className="p-3 w-10">
@@ -309,14 +294,7 @@ export default function CouponsTab() {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={9} className="p-8 text-center text-gray-500">
-                    <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />{" "}
-                    Loading…
-                  </td>
-                </tr>
-              ) : data.items.length === 0 ? (
+              {data.items.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-gray-500">
                     No coupons found

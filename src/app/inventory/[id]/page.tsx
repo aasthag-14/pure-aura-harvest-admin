@@ -1,6 +1,7 @@
 "use client";
 
 import InventoryForm from "@/components/InventoryForm";
+import { InventoryShimmer } from "@/components/loaders/ShimmerLoader";
 import Modal from "@/components/Modal";
 import { Product } from "@/types/product";
 import axios from "axios";
@@ -15,6 +16,7 @@ const ViewProduct: React.FC = () => {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const openEditModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -22,8 +24,10 @@ const ViewProduct: React.FC = () => {
   useEffect(() => {
     if (id) {
       const fetchProduct = async () => {
+        setLoading(true)
         const res = await axios.get(`/api/inventory/${id}`);
         setProduct(res.data);
+        setLoading(false)
       };
       fetchProduct();
     }
@@ -54,10 +58,23 @@ const ViewProduct: React.FC = () => {
     setProduct({ ...product, active: !product.active });
   };
 
-  if (!product) return <p>Loading...</p>;
+  if (loading) return <InventoryShimmer />;
+
+  if(!product) {
+    return (
+      <div className="max-w-5xl mx-auto p-6 bg-white shadow-md rounded-2xl">
+        <p className="text-center text-gray-500">Product not found.</p>
+        <div className="mt-4 flex justify-center">
+          <Link href="/" className="btn-secondary">
+            Go Back
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 bg-white shadow-md rounded-2xl">
+    <div className="max-w-5xl mx-auto p-6 bg-white shadow-md rounded-2xl w-[95vw] md:w-full">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row gap-6">
         {/* Product Image */}
@@ -104,7 +121,7 @@ const ViewProduct: React.FC = () => {
             </span>
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             <button
               onClick={handleToggleActive}
               className={`px-4 py-2 rounded-lg ${
@@ -124,7 +141,7 @@ const ViewProduct: React.FC = () => {
             >
               Delete
             </button>
-            <Link href="/" className="btn-secondary">
+            <Link href="/?tab=inventory" className="btn-secondary">
               Close
             </Link>
           </div>
