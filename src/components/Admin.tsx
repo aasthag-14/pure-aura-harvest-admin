@@ -12,7 +12,7 @@ const Admin = () => {
   const formattedTab = TABS.find(
     (t) => t.toLowerCase() === tabFromUrl?.toLowerCase()
   );
-  const [activeTab, setActiveTab] = useState(formattedTab);
+  const [activeTab, setActiveTab] = useState(formattedTab || "Orders");
 
   useEffect(() => {
     if (tabFromUrl) {
