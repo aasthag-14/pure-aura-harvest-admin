@@ -2,13 +2,8 @@
 
 import { Order } from "@/types/order";
 import { Product } from "@/types/product";
+import { User } from "@/types/user";
 import { createContext, ReactNode, useContext, useState } from "react";
-
-type User = {
-  id: string;
-  name: string;
-  email: string;
-};
 
 type AppDataContextType = {
   orders: Order[];

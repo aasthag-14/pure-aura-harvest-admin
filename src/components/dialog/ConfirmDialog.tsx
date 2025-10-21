@@ -25,10 +25,7 @@ export default function ConfirmDialog({
         </div>
         <div className="p-4 text-sm text-gray-700">{message}</div>
         <div className="p-4 border-t border-gray-200 flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50"
-          >
+          <button onClick={onCancel} className="px-4 py-2 btn-secondary">
             Cancel
           </button>
           <button
